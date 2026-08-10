@@ -7,6 +7,7 @@ on:
       - 'vote/**'          # adjust to your actual app source folders
       - 'result/**'
       - 'worker/**'
+      - '*'
 
 jobs:
   build-and-push:
