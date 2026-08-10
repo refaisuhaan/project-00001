@@ -3,7 +3,6 @@ name: Build, Push, and Update Helm Chart
 on:
   push:
     branches: [main]
-    # Removed specific paths so ANY push to 'main' triggers the workflow
 
 jobs:
   build-and-push:
@@ -49,17 +48,16 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/votingapp-worker:${{ steps.vars.outputs.sha_short }}
 
-      - name: Update Helm values.yaml with new image tags
+      - name: Update Helm values.yaml using yq
         run: |
-          sed -i "s|image: .*votingapp-vote.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/votingapp-vote:${{ steps.vars.outputs.sha_short }}|" votingapp/values.yaml
-          sed -i "s|image: .*votingapp-result.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/votingapp-result:${{ steps.vars.outputs.sha_short }}|" votingapp/values.yaml
-          sed -i "s|image: .*votingapp-worker.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/votingapp-worker:${{ steps.vars.outputs.sha_short }}|" votingapp/values.yaml
+          yq -i '.vote.image = "${{ secrets.DOCKERHUB_USERNAME }}/votingapp-vote:${{ steps.vars.outputs.sha_short }}"' votingapp/values.yaml
+          yq -i '.result.image = "${{ secrets.DOCKERHUB_USERNAME }}/votingapp-result:${{ steps.vars.outputs.sha_short }}"' votingapp/values.yaml
+          yq -i '.worker.image = "${{ secrets.DOCKERHUB_USERNAME }}/votingapp-worker:${{ steps.vars.outputs.sha_short }}"' votingapp/values.yaml
 
       - name: Commit and push updated values.yaml
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add votingapp/values.yaml
-          # [SKIP CI] prevents infinite triggering loops
           git commit -m "ci: update image tags to ${{ steps.vars.outputs.sha_short }} [skip ci]" || echo "No changes to commit"
           git push
