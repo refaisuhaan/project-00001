@@ -3,10 +3,7 @@ name: Build, Push, and Update Helm Chart
 on:
   push:
     branches: [main]
-    paths:
-      - 'vote/**'          # adjust to your actual app source folders
-      - 'result/**'
-      - 'worker/**'
+    # Removed specific paths so ANY push to 'main' triggers the workflow
 
 jobs:
   build-and-push:
@@ -63,5 +60,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add votingapp/values.yaml
-          git commit -m "ci: update image tags to ${{ steps.vars.outputs.sha_short }}" || echo "No changes to commit"
+          # [SKIP CI] prevents infinite triggering loops
+          git commit -m "ci: update image tags to ${{ steps.vars.outputs.sha_short }} [skip ci]" || echo "No changes to commit"
           git push
