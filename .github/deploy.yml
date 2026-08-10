@@ -1,4 +1,4 @@
-name: Build, Push, and Update Helm Chart
+name: Build, Push, and Update Helm Charts
 
 on:
   push:
