@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:15-alpine
+    replicas: 1
+    containerPort: 5432
+    service:
+      type: ClusterIP
+      port: 5432
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volume:
+      enabled: true
+      mountPath: /var/lib/postgresql/data
+
+  redis:
+    image: redis:alpine
+    replicas: 1
+    containerPort: 6379
+    service:
+      type: ClusterIP
+      port: 6379
+    volume:
+      enabled: true
+      mountPath: /data
+
+  vote:
+    image: dockersamples/examplevotingapp_vote
+    replicas: 1
+    containerPort: 80
+    service:
+      type: ClusterIP
+      port: 5000
+
+  result:
+    image: dockersamples/examplevotingapp_result
+    replicas: 1
+    containerPort: 80
+    service:
+      type: ClusterIP
+      port: 5001
+
+  worker:
+    image: dockersamples/examplevotingapp_worker
+    replicas: 1
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: vote.local
+      service: vote
+    - host: result.local
+      service: result
+
+httpRoute:
+  enabled: false

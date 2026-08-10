@@ -1,0 +1,44 @@
+{{- range $name, $svc := .Values.services }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    app: {{ $name }}
+spec:
+  replicas: {{ $svc.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app: {{ $name }}
+    spec:
+      containers:
+      - name: {{ $name }}
+        image: {{ $svc.image }}
+        {{- if $svc.containerPort }}
+        ports:
+        - containerPort: {{ $svc.containerPort }}
+          name: {{ $name }}
+        {{- end }}
+        {{- if $svc.env }}
+        env:
+        {{- range $key, $value := $svc.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- end }}
+        {{- if and $svc.volume $svc.volume.enabled }}
+        volumeMounts:
+        - mountPath: {{ $svc.volume.mountPath }}
+          name: {{ $name }}-data
+        {{- end }}
+      {{- if and $svc.volume $svc.volume.enabled }}
+      volumes:
+      - name: {{ $name }}-data
+        emptyDir: {}
+      {{- end }}
+---
+{{- end }}
